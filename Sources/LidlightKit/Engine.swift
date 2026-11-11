@@ -62,12 +62,32 @@ public struct EffectSettings: Sendable, Equatable, Codable {
     public var musicStrobe: Bool = false
     /// Lift Apple's dark-room cap (max-restriction table → flat 1000 nits).
     public var fullBrightnessInAnyRoom: Bool = false
-    /// Pause animations while the built-in keyboard backlight is lit (avoids keyboard flicker).
-    public var pauseWhileKeyboardLit: Bool = true
+    /// Pause animations while the built-in keyboard backlight is lit. Off by default: the driver
+    /// restores the keyboard backlight after every dark phase, so this is only a fallback.
+    public var pauseWhileKeyboardLit: Bool = false
     /// Seconds without keyboard/mouse input before "needs you" blinks start.
     public var agentAwayAfter: Double = 30
 
     public init() {}
+
+    private enum CodingKeys: String, CodingKey {
+        case brightness, breathePeriod, musicIntensity, musicStrobe, fullBrightnessInAnyRoom
+        // Renamed from "pauseWhileKeyboardLit" (default on in 0.1.0) so the new default applies.
+        case pauseWhileKeyboardLit = "pauseForKeyboardBacklight"
+        case agentAwayAfter
+    }
+
+    /// Missing keys keep their defaults, so settings saved by an older version still load.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        brightness = try c.decodeIfPresent(Double.self, forKey: .brightness) ?? brightness
+        breathePeriod = try c.decodeIfPresent(Double.self, forKey: .breathePeriod) ?? breathePeriod
+        musicIntensity = try c.decodeIfPresent(Double.self, forKey: .musicIntensity) ?? musicIntensity
+        musicStrobe = try c.decodeIfPresent(Bool.self, forKey: .musicStrobe) ?? musicStrobe
+        fullBrightnessInAnyRoom = try c.decodeIfPresent(Bool.self, forKey: .fullBrightnessInAnyRoom) ?? fullBrightnessInAnyRoom
+        pauseWhileKeyboardLit = try c.decodeIfPresent(Bool.self, forKey: .pauseWhileKeyboardLit) ?? pauseWhileKeyboardLit
+        agentAwayAfter = try c.decodeIfPresent(Double.self, forKey: .agentAwayAfter) ?? agentAwayAfter
+    }
 
     public static let breathePeriodRange: ClosedRange<Double> = 3...10
 }

@@ -279,6 +279,20 @@ public final class CoreBrightnessLogoDriver: LogoDriving, LogoPreviewSource, @un
             Log.driver.error("corebrightnessd rejected \(LogoKey.displayLogicalState, privacy: .public)")
             throw LogoDriverError.writeFailed(key: LogoKey.displayLogicalState)
         }
+        if state == 1 { keepKeyboardBacklight() }
+    }
+
+    /// A Blank write also reaches the keyboard backlight, which treats it as "user inactive" and
+    /// switches off. Telling it straight away that the user is active restores it within a few
+    /// milliseconds, so the logo's dark phases leave the keyboard alone (docs/HARDWARE.md).
+    private func keepKeyboardBacklight() {
+        if !transport.setProperty(NSNumber(value: true), forKey: LogoKey.userActivityUpdate) {
+            Log.driver.error("corebrightnessd rejected \(LogoKey.userActivityUpdate, privacy: .public)")
+            return
+        }
+        // Re-writing the current value changes nothing but makes the keyboard update immediately.
+        let suspended = (transport.property(forKey: LogoKey.keyboardSuspendDimming) as? NSNumber)?.boolValue ?? false
+        _ = transport.setProperty(NSNumber(value: suspended), forKey: LogoKey.keyboardSuspendDimming)
     }
 
     // MARK: Restore

@@ -227,6 +227,11 @@ t.test("driver: animation channel, gate, dirty marker flags") {
     try driver.setFactorTarget(.dark)
     try driver.setFactorTarget(.dark)
     t.expectEqual(intValues(fake.writes(to: LogoKey.displayLogicalState)), [1, 1], "targets are not deduplicated")
+    t.expectEqual(fake.writes(to: LogoKey.userActivityUpdate).count, 2, "every Blank is followed by a keyboard restore")
+    t.expectEqual(fake.writes.suffix(3).map(\.key),
+                  [LogoKey.displayLogicalState, LogoKey.userActivityUpdate, LogoKey.keyboardSuspendDimming],
+                  "the restore comes straight after the Blank")
+    t.expectEqual((fake.writes.last?.value as? NSNumber)?.boolValue, false, "suspend-dimming keeps its value")
     let marker = DirtyMarker.read(from: url)
     t.expectEqual(marker?.factorModified, true)
     t.expectEqual(marker?.tablesModified, false)
@@ -240,6 +245,7 @@ t.test("driver: animation channel, gate, dirty marker flags") {
     try driver.setFactorTarget(.dark)
     try driver.releaseFactor()
     t.expectEqual(intValues(fake.writes(to: LogoKey.displayLogicalState)).last, 2)
+    t.expectEqual(fake.writes(to: LogoKey.userActivityUpdate).count, 3, "Unblank needs no keyboard restore")
     t.expectEqual(((fake.writes(to: LogoKey.factorFadeDuration).last) as? NSNumber)?.doubleValue, 0)
     try driver.restoreSystemDefaults(powerOn: true)
     t.expect(!FileManager.default.fileExists(atPath: url.path))

@@ -25,7 +25,9 @@ These are non-negotiable for every module and every experiment:
    for the experimental lid-closed feature, which needs a user-in-the-loop test first.
 6. Write `DisplayLogicalState` **only `1` or `2`**, **only while the built-in display is awake and the
    lid is open**, and **always leave it at `2`** when done.
-7. No `sudo`, no NVRAM writes, no `KeyboardBrightnessClient` setters.
+7. No `sudo`, no NVRAM writes, no `KeyboardBrightnessClient` setters. The only keyboard keys the
+   driver may write are `CBUserActivityUpdate = true` and `KeyboardBacklightSuspendDimming` with its
+   current value, straight after a Blank (see "Keyboard backlight interplay").
 8. Always leave the machine as you found it: Apple's tables, fade override 0, logical state 2, mode 2
    (unless the user deliberately turned the logo off).
 
@@ -162,8 +164,28 @@ Signals during a Blank phase: `brightness` and the live level read 0 (fooled by 
 `saturated` keeps tracking room light (1 in a bright room). So "the keyboard would be lit" =
 `!dimmed && !saturated`, which is what `CoreBrightnessKeyboardProbe` reports.
 
-Mitigation: effects pause while that is true (setting "Pause effects while the keyboard backlight is on",
-default on). Agents' "needs you" blinks only run when the user is away, when the keyboard is dimmed anyway.
+### Keeping the keyboard lit (the fix)
+
+The keyboard container turns a Blank into `CBUserActivityUpdate = false` for the keyboard backlight
+("User activity 0" → "Turn off keyboard backlight"). That key is also writable by clients, and only the
+keyboard acts on it (logo, display and auto-brightness modules return result=0). So the driver follows
+every Blank with:
+
+1. `CBUserActivityUpdate = true` — the keyboard returns to its normal state (idle-dim and ambient
+   saturation still apply; this is the value it has whenever the display is on).
+2. a re-write of `KeyboardBacklightSuspendDimming` with its current value — changes nothing, but makes
+   the keyboard apply its state at once instead of at its next ambient-light tick (~26 ms later).
+
+Measured over three 1 s dark phases, sampling the keyboard level every 2 ms in a dark room: without
+the fix the keyboard is off for the whole dark phase; with step 1 only it reads off for ~28 ms per
+phase; with both steps for ≤ 3 ms in total, while the logo factor still reaches 0. corebrightnessd
+then fades the keyboard back over its usual 350 ms, so a faint dip may still be visible on some units.
+`KeyboardBacklightABSuspend` and `KeyboardBacklightSuspendDimming = true` do **not** prevent the
+switch-off. The logo module has no client-writable factor or nits key of its own (its `setProperty`
+handles only mode, clamshell, logical/power state, spring profile and fade duration).
+
+Fallback: the setting "Pause effects while the keyboard backlight is on" (now off by default)
+pauses effects while `!dimmed && !saturated`.
 Keyboard IDs on this Mac: 95158272 (built-in keyboard), 13 (second key light).
 
 ## Useful commands

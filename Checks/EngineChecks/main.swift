@@ -488,15 +488,16 @@ t.test("a lit keyboard backlight pauses animation only when the setting is on") 
     rig.start(.breathe)
     rig.advance(1)
     rig.system { $0.keyboardBacklightLit = true }
+    t.expectEqual(rig.status.pausedReason, nil, "off by default")
+    t.expect(rig.status.isAnimating)
+    var s = EffectSettings()
+    s.pauseWhileKeyboardLit = true
+    rig.core.setSettings(s)
     t.expectEqual(rig.status.pausedReason, .keyboardLit)
     t.expect(rig.driver.calls.contains { $0.call == .release })
-    var s = EffectSettings()
-    s.pauseWhileKeyboardLit = false
-    rig.core.setSettings(s)
+    rig.core.setSettings(EffectSettings())
     t.expectEqual(rig.status.pausedReason, nil)
     t.expect(rig.status.isAnimating)
-    rig.core.setSettings(EffectSettings())
-    t.expectEqual(rig.status.pausedReason, .keyboardLit)
 }
 
 t.test("steady mode reports no environmental pause") {

@@ -223,6 +223,16 @@ public enum LogoKey {
     /// container (it reacts as if the display blanked). Write only while the built-in display is
     /// awake and the lid is open, and always leave it at 2.
     public static let displayLogicalState = "DisplayLogicalState"
+    /// Bool. Handled only by the keyboard backlight (the logo, display and auto-brightness modules
+    /// ignore it). A Blank write makes the keyboard container set this to false, which switches the
+    /// keyboard backlight off; writing true straight after puts the keyboard back to its normal
+    /// state (lit if the user is typing in a dim room, still idle-dimmed otherwise) while the logo
+    /// keeps fading. In-memory only.
+    public static let userActivityUpdate = "CBUserActivityUpdate"
+    /// Bool, keyboard backlight only, in-memory. Never changed by Lidlight: re-writing its current
+    /// value makes the keyboard apply its state at once instead of at its next ambient-light tick
+    /// (~26 ms later), which shortens the keyboard's gap after a Blank to about 2 ms.
+    public static let keyboardSuspendDimming = "KeyboardBacklightSuspendDimming"
 
     /// FORBIDDEN. The display module acts on this key: writing it blanked the built-in display
     /// during research. Listed only so reviews can grep for it. Never write it.

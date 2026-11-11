@@ -45,7 +45,7 @@ struct SettingsView: View {
             }
             Toggle(isOn: Binding(get: { effects.pauseWhileKeyboardLit }, set: model.setPauseWhileKeyboardLit)) {
                 Text("Pause effects while the keyboard backlight is on")
-                Text("Effects switch the keyboard light off during their dark phases.")
+                Text("Only needed if you see the keyboard light flicker during effects.")
             }
             LabeledContent {
                 Button("Restore and Quit", action: model.restoreAppleLogoSettingsAndQuit)

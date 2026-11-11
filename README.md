@@ -96,8 +96,9 @@ design is in [docs/PLAN.md](docs/PLAN.md).
 
 - Brightness changes take effect at macOS's next logo update (usually when your screen brightness or the
   room light changes), not instantly.
-- The logo's fade also switches the **keyboard backlight** off during dark phases. By default, effects
-  pause while the keyboard backlight would be on (you're typing in a dim room) and resume when you stop.
+- The logo's fade signal also reaches the **keyboard backlight**. Lidlight restores it within a few
+  milliseconds, so it stays lit; if you still notice a flicker, Settings has an option to pause effects
+  while the keyboard backlight is on.
 - It relies on private macOS interfaces, so a macOS update can change or break it.
 - The logo is white — no app can change its color.
 
