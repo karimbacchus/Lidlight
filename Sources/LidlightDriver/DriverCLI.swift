@@ -34,7 +34,7 @@ public enum DriverCLI {
           tables                     print the three brightness tables
           restore [--on]             Apple's tables, no fade override, factor lit (--on: power on too)
           fade <dark|lit> [seconds]  ramp the animation factor (optionally set the fade duration)
-          measure-ramp [seconds…]    sample the factor ramp at ~100 Hz, print CSV and the fitted k
+          measure-ramp [seconds…]    sample the factor ramp at ~100 Hz, print CSV and the fitted a
                                      (default durations: 0.3 1 2 4)
           guard --parent-pid <pid>   crash guardian started by the app (restores on parent exit)
           help                       this text
@@ -151,7 +151,7 @@ public enum DriverCLI {
         case .tables:
             printTables(try require(driver.readTables(), "cannot read the brightness tables"))
         case .restore(let powerOn):
-            driver.setAnimationAllowed(AnimationEnvironment.isPossible())
+            driver.setAnimationAllowed(MacHardware.animationPossible())
             try driver.restoreSystemDefaults(powerOn: powerOn)
             print("restored Apple's tables, no fade override, factor lit" + (powerOn ? ", logo on" : ""))
         case .fade(let target, let seconds):
@@ -228,17 +228,17 @@ public enum DriverCLI {
         }
         for recording in recordings {
             let settle = recording.settleTime().map { format($0, digits: 3) } ?? "never"
-            let k = RampFit.fitK([recording]).map { format($0, digits: 2) } ?? "n/a"
-            print("# duration \(recording.duration) \(recording.target == .dark ? "dark" : "lit"): k=\(k), within 1% of target after \(settle) s")
+            let a = RampFit.fitA([recording]).map { format($0, digits: 2) } ?? "n/a"
+            print("# duration \(recording.duration) \(recording.target == .dark ? "dark" : "lit"): a=\(a), within 1% of target after \(settle) s")
         }
-        let pooled = RampFit.fitK(recordings).map { format($0, digits: 2) } ?? "n/a"
-        print("# pooled k = \(pooled)  (factor(u) = (e^(-k u) - e^(-k)) / (1 - e^(-k)), tau = duration / k)")
+        let pooled = RampFit.fitA(recordings).map { format($0, digits: 2) } ?? "n/a"
+        print("# pooled a = \(pooled)  (remaining(u) = (g(a u) - g(a)) / (1 - g(a)), g(x) = (1 + x) e^-x)")
     }
 
     // MARK: Helpers
 
     private static func requireAnimationPossible() throws {
-        guard AnimationEnvironment.isPossible() else {
+        guard MacHardware.animationPossible() else {
             throw LogoDriverError.notAllowed("the built-in display is asleep or the lid is closed")
         }
     }

@@ -35,20 +35,3 @@ package struct BatteryReading: Equatable {
         return BatteryReading(percent: percent, isCharging: isCharging, onBattery: onBattery)
     }
 }
-
-/// Pure decisions about the built-in display and session, separated from the system calls.
-package enum DisplayRules {
-    /// The built-in display counts as asleep when it reports asleep, or when it is online but not
-    /// active (lid closed while an external display is in use). No built-in display at all is "not asleep".
-    package static func isBuiltInAsleep(builtIn: CGDirectDisplayID?, active: [CGDirectDisplayID],
-                                        reportsAsleep: Bool) -> Bool {
-        guard let builtIn else { return false }
-        return reportsAsleep || !active.contains(builtIn)
-    }
-
-    /// Reads `CGSSessionScreenIsLocked` from a `CGSessionCopyCurrentDictionary` result.
-    package static func isScreenLocked(sessionDictionary: [String: Any]?) -> Bool {
-        guard let value = sessionDictionary?["CGSSessionScreenIsLocked"] else { return false }
-        return (value as? Bool) ?? ((value as? NSNumber)?.boolValue ?? false)
-    }
-}

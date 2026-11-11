@@ -8,6 +8,9 @@ public enum AppInfo {
     public static let helperExecutableName = "lidlightctl"
     /// Darwin notification (notify(3)) posted by the hook helper after it writes a session record.
     public static let agentsChangedNotification = "app.lidlight.agents.changed"
+    /// System Settings › Privacy & Security › Screen & System Audio Recording.
+    public static let audioPrivacySettingsURL =
+        URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!
     public static var version: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
     }
@@ -24,6 +27,21 @@ public struct AppSettings: Codable, Sendable, Equatable {
     public var agentsConnected: Bool = false
 
     public init() {}
+
+    private enum CodingKeys: String, CodingKey {
+        case isOn, mode, effects, openAtLogin, globalShortcutEnabled, agentsConnected
+    }
+
+    /// Missing keys keep their defaults, so settings saved by another version still load.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        isOn = try c.decodeIfPresent(Bool.self, forKey: .isOn) ?? isOn
+        mode = (try? c.decodeIfPresent(LogoMode.self, forKey: .mode)) ?? mode
+        effects = try c.decodeIfPresent(EffectSettings.self, forKey: .effects) ?? effects
+        openAtLogin = try c.decodeIfPresent(Bool.self, forKey: .openAtLogin) ?? openAtLogin
+        globalShortcutEnabled = try c.decodeIfPresent(Bool.self, forKey: .globalShortcutEnabled) ?? globalShortcutEnabled
+        agentsConnected = try c.decodeIfPresent(Bool.self, forKey: .agentsConnected) ?? agentsConnected
+    }
 }
 
 public enum AppPaths {

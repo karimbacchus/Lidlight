@@ -1,4 +1,4 @@
-import Darwin
+import AppKit
 import Foundation
 import LidlightKit
 
@@ -42,7 +42,7 @@ public enum AudioCLI {
                 Audio capture was denied. Allow it in System Settings > Privacy & Security >
                 Screen & System Audio Recording (enable your terminal app, or Lidlight), then run again.
                 """)
-            SystemAudioBeatSource.openPrivacySettings()
+            NSWorkspace.shared.open(AppInfo.audioPrivacySettingsURL)
             return 3
         } catch AudioCaptureError.unsupported {
             printError("System audio capture needs macOS 14.2 or later.")

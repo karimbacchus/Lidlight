@@ -31,7 +31,7 @@ package final class FakeLogoScene: @unchecked Sendable {
         let (isOn, mode, effects, paused, activity, battery) = (_isOn, _mode, _effects, _paused, _activity, _batteryFraction)
         lock.unlock()
         guard isOn else { return 0 }
-        let base = BrightnessCurve.nits(forSlider: effects.brightness) / LogoLimits.maxNits
+        let base = LogoLimits.nits(forBrightness: effects.brightness) / LogoLimits.maxNits
         if paused { return base }
         switch mode {
         case .steady:

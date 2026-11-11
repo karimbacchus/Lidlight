@@ -91,22 +91,12 @@ public final class AppModel: ObservableObject {
         guard let data = defaults.data(forKey: settingsKey) else { return AppSettings() }
         do {
             var settings = try JSONDecoder().decode(AppSettings.self, from: data)
-            settings.effects = sanitized(settings.effects)
+            settings.effects = settings.effects.sanitized()
             return settings
         } catch {
             Log.ui.error("Ignoring unreadable settings: \(error.localizedDescription)")
             return AppSettings()
         }
-    }
-
-    private static func sanitized(_ effects: EffectSettings) -> EffectSettings {
-        var e = effects
-        e.brightness = min(max(e.brightness, 0), 1)
-        e.breathePeriod = min(max(e.breathePeriod, EffectSettings.breathePeriodRange.lowerBound),
-                              EffectSettings.breathePeriodRange.upperBound)
-        e.musicIntensity = min(max(e.musicIntensity, 0), 1)
-        e.agentAwayAfter = min(max(e.agentAwayAfter, 5), 300)
-        return e
     }
 
     private func persist() {
@@ -273,10 +263,7 @@ public final class AppModel: ObservableObject {
 
     private func startBeatSource() {
         do {
-            try beats.start(
-                onBeat: { [weak self] beat in self?.engine.handleBeat(beat) },
-                onLevel: { [weak self] level in self?.engine.handleAudioLevel(level) }
-            )
+            try beats.start(onBeat: { [weak self] beat in self?.engine.handleBeat(beat) }, onLevel: nil)
         } catch {
             Log.ui.error("Audio capture failed to start: \(error.localizedDescription)")
         }
@@ -286,8 +273,7 @@ public final class AppModel: ObservableObject {
     public func refreshAudioAccess() { syncBeatSource() }
 
     public func openAudioPrivacySettings() {
-        let pane = "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
-        if let url = URL(string: pane) { NSWorkspace.shared.open(url) }
+        NSWorkspace.shared.open(AppInfo.audioPrivacySettingsURL)
     }
 
     // MARK: Live readout

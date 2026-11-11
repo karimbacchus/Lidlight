@@ -11,8 +11,6 @@ final class GlobalHotKey {
 
     deinit { unregister() }
 
-    var isRegistered: Bool { hotKeyRef != nil }
-
     func register() {
         guard hotKeyRef == nil else { return }
         var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))

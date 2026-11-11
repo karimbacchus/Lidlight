@@ -39,7 +39,7 @@ final class AudioCaptureSession {
     /// `onConfigurationChange` fires (on an arbitrary queue) when the default output device or tap format changes.
     func start(
         onBeat: @escaping (BeatEvent) -> Void,
-        onLevel: @escaping (Double) -> Void,
+        onLevel: ((Double) -> Void)?,
         onConfigurationChange: @escaping () -> Void
     ) throws {
         do {
@@ -52,7 +52,7 @@ final class AudioCaptureSession {
 
     private func build(
         onBeat: @escaping (BeatEvent) -> Void,
-        onLevel: @escaping (Double) -> Void,
+        onLevel: ((Double) -> Void)?,
         onConfigurationChange: @escaping () -> Void
     ) throws {
         // 1. Tap: all processes' output, mixed to stereo, unmuted, private to this process.
@@ -202,7 +202,7 @@ final class AudioCaptureSession {
 
     // MARK: Analysis
 
-    private func startAnalysis(sampleRate: Double, onBeat: @escaping (BeatEvent) -> Void, onLevel: @escaping (Double) -> Void) {
+    private func startAnalysis(sampleRate: Double, onBeat: @escaping (BeatEvent) -> Void, onLevel: ((Double) -> Void)?) {
         let detector = BeatDetector(sampleRate: sampleRate)
         let ring = self.ring
         let scratch = analysisScratch
@@ -224,7 +224,7 @@ final class AudioCaptureSession {
                 let event = BeatEvent(uptime: now - (streamSeconds - beat.time), strength: beat.strength, isStrong: beat.isStrong)
                 DispatchQueue.main.async { onBeat(event) }
             }
-            if now - lastLevelUptime >= 1.0 / 30.0 {
+            if let onLevel, now - lastLevelUptime >= 1.0 / 30.0 {
                 lastLevelUptime = now
                 let level = detector.level
                 DispatchQueue.main.async { onLevel(level) }

@@ -28,12 +28,27 @@ if let flag = arguments.firstIndex(of: "--snapshots") {
 let t = TestRun("UI")
 
 t.test("brightness curve matches the spec") {
-    t.expectClose(BrightnessCurve.nits(forSlider: 0), 3, tolerance: 1e-9)
-    t.expectClose(BrightnessCurve.nits(forSlider: 1), 1000, tolerance: 1e-9)
-    t.expectClose(BrightnessCurve.nits(forSlider: 0.5), 3 + 997 * pow(0.5, 2.2), tolerance: 1e-6)
-    t.expectClose(BrightnessCurve.slider(forNits: BrightnessCurve.nits(forSlider: 0.37)), 0.37, tolerance: 1e-9)
+    t.expectClose(LogoLimits.nits(forBrightness: 0), 3, tolerance: 1e-9)
+    t.expectClose(LogoLimits.nits(forBrightness: 1), 1000, tolerance: 1e-9)
+    t.expectClose(LogoLimits.nits(forBrightness: 0.5), 3 + 997 * pow(0.5, 2.2), tolerance: 1e-6)
+    t.expectClose(LogoLimits.brightness(forNits: LogoLimits.nits(forBrightness: 0.37)), 0.37, tolerance: 1e-9)
     t.expectEqual(BrightnessCurve.label(forSlider: 1), "1000 nits")
     t.expectEqual(BrightnessCurve.label(forSlider: 5), "1000 nits", "clamped")
+}
+
+t.test("settings saved by 0.1.0 still load, with the new keyboard default") {
+    let old = #"{"isOn":false,"mode":"breathe","openAtLogin":true,"effects":{"brightness":0.5,"pauseWhileKeyboardLit":true,"agentAwayAfter":9999}}"#
+    let defaults = UserDefaults(suiteName: "app.lidlight.checks.\(UUID().uuidString)")!
+    defaults.set(Data(old.utf8), forKey: AppModel.settingsKey)
+    let loaded = AppModel.loadSettings(from: defaults)
+    t.expectEqual(loaded.isOn, false)
+    t.expectEqual(loaded.mode, .breathe)
+    t.expectEqual(loaded.openAtLogin, true)
+    t.expectEqual(loaded.globalShortcutEnabled, true, "missing key keeps its default")
+    t.expectEqual(loaded.effects.brightness, 0.5)
+    t.expectEqual(loaded.effects.pauseWhileKeyboardLit, false, "the 0.1.0 key is ignored")
+    t.expectEqual(loaded.effects.agentAwayAfter, 300, "clamped")
+    t.expectEqual(try? JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(loaded)), loaded, "round trip")
 }
 
 t.test("breathe speed: right is fast, range 3...10 s") {

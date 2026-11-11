@@ -80,6 +80,20 @@ public enum LogoLimits {
     public static let maxNits: Double = 1000
     /// Lowest non-zero level we offer on the brightness slider (nits).
     public static let minNits: Double = 3
+
+    private static let sliderExponent = 2.2
+
+    /// Brightness slider position 0...1 → nits. Perceptual: `3 + 997 · s^2.2`.
+    public static func nits(forBrightness slider: Double) -> Double {
+        let s = min(max(slider, 0), 1)
+        return minNits + (maxNits - minNits) * pow(s, sliderExponent)
+    }
+
+    /// Inverse of `nits(forBrightness:)`.
+    public static func brightness(forNits nits: Double) -> Double {
+        let t = min(max((nits - minNits) / (maxNits - minNits), 0), 1)
+        return pow(t, 1 / sliderExponent)
+    }
 }
 
 // MARK: - Tables
@@ -234,9 +248,8 @@ public enum LogoKey {
     /// (~26 ms later), which shortens the keyboard's gap after a Blank to about 2 ms.
     public static let keyboardSuspendDimming = "KeyboardBacklightSuspendDimming"
 
-    /// FORBIDDEN. The display module acts on this key: writing it blanked the built-in display
-    /// during research. Listed only so reviews can grep for it. Never write it.
-    public static let forbiddenDisplayPowerStateEvent = "DisplayPowerStateEvent"
+    // `DisplayPowerStateEvent` is deliberately absent: the display module acts on it (writing it
+    // blanked the built-in display during research). The bridge refuses that key outright.
 }
 
 // MARK: - Errors
@@ -308,8 +321,8 @@ public protocol LogoPreviewSource: AnyObject {
     func previewLevel() -> Double
 }
 
-/// Reports whether the built-in keyboard backlight is lit, so effects can avoid visible
-/// side effects on it: every `DisplayLogicalState` dark phase switches the keyboard backlight off.
+/// Reports whether the built-in keyboard backlight is lit, for the optional "pause effects while
+/// the keyboard backlight is on" fallback (the driver normally restores it after every dark phase).
 public protocol KeyboardBacklightProbing: AnyObject, Sendable {
     /// True when the built-in keyboard backlight would be on (user active, room dark enough) —
     /// independent of Lidlight's own dark phases, which zero the keyboard's live brightness.

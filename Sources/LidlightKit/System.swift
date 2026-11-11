@@ -15,8 +15,6 @@ public struct SystemStatus: Sendable, Equatable {
     public var isCharging: Bool = false
     /// Seconds since the last keyboard/mouse/trackpad input.
     public var userIdleSeconds: Double = 0
-    /// `ProcessInfo.ThermalState.rawValue` (0 nominal … 3 critical).
-    public var thermalState: Int = 0
     /// Built-in keyboard backlight currently lit.
     public var keyboardBacklightLit: Bool = false
 

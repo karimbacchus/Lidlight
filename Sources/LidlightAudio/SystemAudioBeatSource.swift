@@ -1,4 +1,3 @@
-import AppKit
 import Foundation
 import LidlightKit
 
@@ -6,7 +5,7 @@ import LidlightKit
 public final class SystemAudioBeatSource: BeatSource {
     private let lock = NSLock()
     private var session: Any?  // AudioCaptureSession (macOS 14.2+)
-    private var callbacks: (onBeat: (BeatEvent) -> Void, onLevel: (Double) -> Void)?
+    private var callbacks: (onBeat: (BeatEvent) -> Void, onLevel: ((Double) -> Void)?)?
     private var storedPermission: AudioCapturePermission
     private var restartGeneration = 0
     private let controlQueue = DispatchQueue(label: "app.lidlight.audio.control", qos: .utility)
@@ -33,7 +32,7 @@ public final class SystemAudioBeatSource: BeatSource {
     }
 
     /// Starts capturing. Throws `AudioCaptureError`; `.denied`/`.unsupported` are also reflected in `permission`.
-    public func start(onBeat: @escaping (BeatEvent) -> Void, onLevel: @escaping (Double) -> Void) throws {
+    public func start(onBeat: @escaping (BeatEvent) -> Void, onLevel: ((Double) -> Void)?) throws {
         guard #available(macOS 14.2, *) else { throw AudioCaptureError.unsupported }
         lock.lock(); defer { lock.unlock() }
         guard session == nil else { return }
@@ -52,18 +51,6 @@ public final class SystemAudioBeatSource: BeatSource {
         restartGeneration += 1
         callbacks = nil
         stopSessionLocked()
-    }
-
-    /// Opens System Settings › Privacy & Security › Screen & System Audio Recording.
-    public static func openPrivacySettings() {
-        let candidates = [
-            "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture",
-            "x-apple.systempreferences:com.apple.preference.security",
-        ]
-        for string in candidates {
-            if let url = URL(string: string), NSWorkspace.shared.open(url) { return }
-        }
-        Log.audio.error("Could not open the Privacy & Security settings pane")
     }
 
     // MARK: Session management (lock held)

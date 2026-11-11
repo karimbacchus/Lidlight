@@ -33,7 +33,7 @@ if defaults read "$DOMAIN" >/dev/null 2>&1; then SAVED_SETTINGS="$(defaults expo
 # settings <mode> <brightness 0-1> <breathePeriod> <pauseWhileKeyboardLit true|false>
 settings() {
     local json
-    json=$(printf '{"isOn":true,"mode":"%s","effects":{"brightness":%s,"breathePeriod":%s,"musicIntensity":0.7,"musicStrobe":false,"fullBrightnessInAnyRoom":false,"pauseWhileKeyboardLit":%s,"agentAwayAfter":30},"openAtLogin":false,"globalShortcutEnabled":true,"agentsConnected":false}' "$1" "$2" "$3" "$4")
+    json=$(printf '{"isOn":true,"mode":"%s","effects":{"brightness":%s,"breathePeriod":%s,"musicIntensity":0.7,"musicStrobe":false,"fullBrightnessInAnyRoom":false,"pauseForKeyboardBacklight":%s,"agentAwayAfter":30},"openAtLogin":false,"globalShortcutEnabled":true,"agentsConnected":false}' "$1" "$2" "$3" "$4")
     defaults write "$DOMAIN" settings.v1 -data "$(printf '%s' "$json" | xxd -p | tr -d '\n')"
 }
 

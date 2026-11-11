@@ -18,7 +18,7 @@ public final class CoreBrightnessKeyboardProbe: KeyboardBacklightProbing, @unche
     private let lock = NSLock()
 
     public init?() {
-        guard let bridge = LLCoreBrightness() else { return nil }
+        guard let bridge = LLCoreBrightness.connect() else { return nil }
         self.bridge = bridge
     }
 

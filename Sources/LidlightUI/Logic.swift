@@ -5,25 +5,11 @@ import LidlightKit
 
 // MARK: - Brightness and speed sliders
 
-/// The perceptual brightness slider: position 0...1 ↔ nits (`3 + 997 · s^2.2`).
+/// The perceptual brightness slider's value label.
 package enum BrightnessCurve {
-    static let exponent = 2.2
-
-    package static func nits(forSlider position: Double) -> Double {
-        let s = min(max(position, 0), 1)
-        let span = LogoLimits.maxNits - LogoLimits.minNits
-        return LogoLimits.minNits + span * pow(s, exponent)
-    }
-
-    package static func slider(forNits nits: Double) -> Double {
-        let span = LogoLimits.maxNits - LogoLimits.minNits
-        let t = min(max((nits - LogoLimits.minNits) / span, 0), 1)
-        return pow(t, 1 / exponent)
-    }
-
     /// "742 nits"
     package static func label(forSlider position: Double) -> String {
-        "\(Int(nits(forSlider: position).rounded())) nits"
+        "\(Int(LogoLimits.nits(forBrightness: position).rounded())) nits"
     }
 }
 

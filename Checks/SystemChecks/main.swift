@@ -42,17 +42,17 @@ t.test("zero max capacity gives nil percent") {
     t.expectEqual(r.percent, nil)
 }
 t.test("display asleep rules") {
-    t.expect(!DisplayRules.isBuiltInAsleep(builtIn: 1, active: [1, 2], reportsAsleep: false))
-    t.expect(DisplayRules.isBuiltInAsleep(builtIn: 1, active: [1], reportsAsleep: true))
-    t.expect(DisplayRules.isBuiltInAsleep(builtIn: 1, active: [2], reportsAsleep: false), "lid closed, external only")
-    t.expect(!DisplayRules.isBuiltInAsleep(builtIn: nil, active: [2], reportsAsleep: false), "no built-in display")
+    t.expect(!MacHardware.isBuiltInAsleep(builtIn: 1, active: [1, 2], reportsAsleep: false))
+    t.expect(MacHardware.isBuiltInAsleep(builtIn: 1, active: [1], reportsAsleep: true))
+    t.expect(MacHardware.isBuiltInAsleep(builtIn: 1, active: [2], reportsAsleep: false), "lid closed, external only")
+    t.expect(!MacHardware.isBuiltInAsleep(builtIn: nil, active: [2], reportsAsleep: false), "no built-in display")
 }
 t.test("session lock dictionary") {
-    t.expect(DisplayRules.isScreenLocked(sessionDictionary: ["CGSSessionScreenIsLocked": true]))
-    t.expect(DisplayRules.isScreenLocked(sessionDictionary: ["CGSSessionScreenIsLocked": NSNumber(value: 1)]))
-    t.expect(!DisplayRules.isScreenLocked(sessionDictionary: ["CGSSessionScreenIsLocked": false]))
-    t.expect(!DisplayRules.isScreenLocked(sessionDictionary: [:]))
-    t.expect(!DisplayRules.isScreenLocked(sessionDictionary: nil))
+    t.expect(SystemReaders.isScreenLocked(sessionDictionary: ["CGSSessionScreenIsLocked": true]))
+    t.expect(SystemReaders.isScreenLocked(sessionDictionary: ["CGSSessionScreenIsLocked": NSNumber(value: 1)]))
+    t.expect(!SystemReaders.isScreenLocked(sessionDictionary: ["CGSSessionScreenIsLocked": false]))
+    t.expect(!SystemReaders.isScreenLocked(sessionDictionary: [:]))
+    t.expect(!SystemReaders.isScreenLocked(sessionDictionary: nil))
 }
 
 final class LitProbe: KeyboardBacklightProbing {
@@ -73,7 +73,6 @@ t.test("live smoke test (read-only, ~3 s)") {
     if let p = s.batteryPercent { t.expect((0...100).contains(p), "battery \(p)") }
     t.expect(s.userIdleSeconds >= 0)
     t.expectEqual(s.userIdleSeconds, s.userIdleSeconds.rounded())
-    t.expect((0...3).contains(s.thermalState))
     t.expect(s.keyboardBacklightLit, "probe is sampled")
     monitor.stop()
     monitor.stop()

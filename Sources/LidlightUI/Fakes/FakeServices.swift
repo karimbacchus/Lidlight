@@ -34,7 +34,7 @@ package final class FakeEngine: LogoControlling {
         }
         status.pausedReason = reason
         status.isAnimating = status.isOn && status.mode.isAnimated && reason == nil
-        status.targetNits = BrightnessCurve.nits(forSlider: settings.brightness)
+        status.targetNits = LogoLimits.nits(forBrightness: settings.brightness)
         scene?.update(isOn: status.isOn, mode: status.mode, effects: settings, paused: reason != nil,
                       batteryFraction: (system.batteryPercent ?? 100) / 100)
         onStatusChange?(status)
@@ -61,7 +61,6 @@ package final class FakeEngine: LogoControlling {
     }
 
     package func handleBeat(_ beat: BeatEvent) { beatCount += 1 }
-    package func handleAudioLevel(_ level: Double) {}
 
     package func preview(_ activity: AgentActivity) {
         calls.append("preview(\(activity.rawValue))")
@@ -162,7 +161,7 @@ package final class FakeBeatSource: BeatSource {
 
     package init(permission: AudioCapturePermission = .granted) { self.permission = permission }
 
-    package func start(onBeat: @escaping (BeatEvent) -> Void, onLevel: @escaping (Double) -> Void) throws {
+    package func start(onBeat: @escaping (BeatEvent) -> Void, onLevel: ((Double) -> Void)?) throws {
         startCount += 1
         if let startError { throw startError }
         isRunning = true
@@ -174,7 +173,7 @@ package final class FakeBeatSource: BeatSource {
             },
             Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { _ in
                 let phase = ProcessInfo.processInfo.systemUptime.truncatingRemainder(dividingBy: 0.5) / 0.5
-                onLevel(exp(-5 * phase))
+                onLevel?(exp(-5 * phase))
             },
         ]
     }

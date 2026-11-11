@@ -58,14 +58,14 @@ func maxFlashesPerSecond(_ times: [TimeInterval]) -> Int {
 // MARK: - Levels
 
 t.test("slider to nits curve endpoints and shape") {
-    t.expectClose(EffectEngine.nits(forBrightness: 0), 3, tolerance: 1e-9)
-    t.expectClose(EffectEngine.nits(forBrightness: 1), 1000, tolerance: 1e-9)
-    t.expectClose(EffectEngine.nits(forBrightness: 0.5), 3 + 997 * pow(0.5, 2.2), tolerance: 1e-9)
-    t.expectClose(EffectEngine.nits(forBrightness: -1), 3, tolerance: 1e-9)
-    t.expectClose(EffectEngine.nits(forBrightness: 2), 1000, tolerance: 1e-9)
+    t.expectClose(LogoLimits.nits(forBrightness: 0), 3, tolerance: 1e-9)
+    t.expectClose(LogoLimits.nits(forBrightness: 1), 1000, tolerance: 1e-9)
+    t.expectClose(LogoLimits.nits(forBrightness: 0.5), 3 + 997 * pow(0.5, 2.2), tolerance: 1e-9)
+    t.expectClose(LogoLimits.nits(forBrightness: -1), 3, tolerance: 1e-9)
+    t.expectClose(LogoLimits.nits(forBrightness: 2), 1000, tolerance: 1e-9)
     var last = 0.0
     for i in 0...20 {
-        let n = EffectEngine.nits(forBrightness: Double(i) / 20)
+        let n = LogoLimits.nits(forBrightness: Double(i) / 20)
         t.expect(n >= last)
         last = n
     }
@@ -77,7 +77,7 @@ t.test("steady writes flat tables immediately and never touches the factor") {
     let rig = Rig()
     rig.start(.steady) { $0.brightness = 0.5 }
     rig.advance(5)
-    let level = EffectEngine.nits(forBrightness: 0.5)
+    let level = LogoLimits.nits(forBrightness: 0.5)
     let written = tableWrites(rig)
     t.expectEqual(written.count, 1)
     let tables = lastTables(rig)
@@ -111,7 +111,7 @@ t.test("level changes are debounced 300 ms and spaced 2 s apart") {
     t.expectEqual(tableWrites(rig).count, 1, "still debouncing")
     rig.advance(0.2)
     t.expectEqual(tableWrites(rig).count, 2)
-    t.expectEqual(lastTables(rig)?.mapping, .flat(EffectEngine.nits(forBrightness: 0.31)))
+    t.expectEqual(lastTables(rig)?.mapping, .flat(LogoLimits.nits(forBrightness: 0.31)))
     // A change right after a write waits for the 2 s spacing.
     s.brightness = 0.6
     rig.core.setSettings(s)

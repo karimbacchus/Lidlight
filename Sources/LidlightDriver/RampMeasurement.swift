@@ -30,23 +30,16 @@ package struct RampRecording {
     }
 }
 
-/// Least-squares estimate of the steepness `k` of `FactorRampModel` from recorded ramps.
+/// Least-squares estimate of `FactorRampModel`'s steepness `a` from recorded ramps.
 package enum RampFit {
-    package static func fitK(_ recordings: [RampRecording]) -> Double? {
+    package static func fitA(_ recordings: [RampRecording]) -> Double? {
         let points = recordings.flatMap(\.normalizedRemaining)
         guard !points.isEmpty else { return nil }
-        func error(_ k: Double) -> Double {
-            let model = FactorRampModel(k: k)
+        func error(_ a: Double) -> Double {
+            let model = FactorRampModel(a: a)
             return points.reduce(0) { $0 + pow(model.remaining($1.u) - $1.remaining, 2) }
         }
-        var best = (k: 0.5, error: Double.infinity)
-        var k = 0.5
-        while k <= 40 {
-            let e = error(k)
-            if e < best.error { best = (k, e) }
-            k += 0.05
-        }
-        return best.k
+        return stride(from: 0.5, through: 40, by: 0.05).min { error($0) < error($1) }
     }
 }
 

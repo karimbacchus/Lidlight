@@ -15,7 +15,6 @@ package final class EngineCore {
         /// Timer slack: keyframes due within this much are written now.
         static let epsilon: TimeInterval = 0.0005
         static let lowBatteryPercent = 10.0
-        static let workingPulseShape = PulseShape.working
         // Music
         static let beatFade = 0.05
         static let dipDelay: TimeInterval = 0.06
@@ -77,7 +76,7 @@ package final class EngineCore {
         guard !isShutDown else { return }
         self.isOn = isOn
         self.mode = mode
-        self.settings = Self.sanitized(settings)
+        self.settings = settings.sanitized()
         started = true
         if driver.isSupported {
             driver.setAnimationAllowed(system.animationPossible)
@@ -108,7 +107,7 @@ package final class EngineCore {
 
     package func setSettings(_ settings: EffectSettings) {
         guard !isShutDown else { return }
-        self.settings = Self.sanitized(settings)
+        self.settings = settings.sanitized()
         reconcile()
     }
 
@@ -169,9 +168,6 @@ package final class EngineCore {
         arm()
     }
 
-    /// Between-beat modulation is not used: the dips already follow the beats.
-    package func handleAudioLevel(_ level: Double) {}
-
     package func shutdown(restoreDefaults: Bool, keepOff: Bool) {
         guard !isShutDown else { return }
         isShutDown = true
@@ -229,7 +225,7 @@ package final class EngineCore {
     private func agentsPlan(_ activity: AgentActivity, away: Bool) -> Plan {
         switch activity {
         case .none, .waiting: return .steady
-        case .working: return .pulse(Tuning.workingPulseShape)
+        case .working: return .pulse(.working)
         case .needsYou: return away ? .blink : .steady
         }
     }
@@ -304,7 +300,7 @@ package final class EngineCore {
 
     private func issue(_ keyframe: Keyframe) {
         guard driver.isSupported, animationAllowed else { return }
-        // The hardware question "does repeating a target restart the ramp" is open: never repeat one.
+        // corebrightnessd ignores a repeat of its current target, so the tracker must not model one.
         guard keyframe.target != lastTarget else {
             Log.engine.debug("dropped keyframe repeating target \(String(describing: keyframe.target))")
             return
@@ -355,7 +351,7 @@ package final class EngineCore {
     // MARK: - Tables
 
     private var targetNits: Double {
-        let level = LogoLevels.nits(forBrightness: settings.brightness)
+        let level = LogoLimits.nits(forBrightness: settings.brightness)
         guard mode == .battery, let percent = system.batteryPercent else { return level }
         return level * LogoLevels.batteryScale(percent: percent)
     }
@@ -433,15 +429,6 @@ package final class EngineCore {
     }
 
     // MARK: - Helpers
-
-    private static func sanitized(_ settings: EffectSettings) -> EffectSettings {
-        var s = settings
-        s.brightness = min(max(s.brightness, 0), 1)
-        s.breathePeriod = min(max(s.breathePeriod, EffectSettings.breathePeriodRange.lowerBound),
-                              EffectSettings.breathePeriodRange.upperBound)
-        s.musicIntensity = min(max(s.musicIntensity, 0), 1)
-        return s
-    }
 
     private func attempt(_ what: String, _ body: () throws -> Void) {
         do {

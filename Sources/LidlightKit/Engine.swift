@@ -90,10 +90,24 @@ public struct EffectSettings: Sendable, Equatable, Codable {
     }
 
     public static let breathePeriodRange: ClosedRange<Double> = 3...10
+    public static let agentAwayRange: ClosedRange<Double> = 5...300
+
+    /// A copy with every value clamped to its valid range.
+    public func sanitized() -> EffectSettings {
+        func clamp(_ value: Double, _ range: ClosedRange<Double>) -> Double {
+            min(max(value, range.lowerBound), range.upperBound)
+        }
+        var s = self
+        s.brightness = clamp(brightness, 0...1)
+        s.breathePeriod = clamp(breathePeriod, Self.breathePeriodRange)
+        s.musicIntensity = clamp(musicIntensity, 0...1)
+        s.agentAwayAfter = clamp(agentAwayAfter, Self.agentAwayRange)
+        return s
+    }
 }
 
 /// Why the engine is not animating right now.
-public enum PauseReason: String, Sendable, Equatable, Codable {
+public enum PauseReason: Sendable, Equatable {
     case logoOff
     case displayAsleep
     case lidClosed
@@ -150,8 +164,6 @@ public protocol LogoControlling: AnyObject {
     func update(system: SystemStatus)
     func update(agents: AgentSnapshot)
     func handleBeat(_ beat: BeatEvent)
-    /// Continuous bass level 0...1 between beats (Music mode).
-    func handleAudioLevel(_ level: Double)
 
     /// Show an Agents pattern for a few seconds regardless of mode (Settings "Test" buttons).
     func preview(_ activity: AgentActivity)

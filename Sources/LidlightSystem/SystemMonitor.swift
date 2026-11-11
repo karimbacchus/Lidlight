@@ -4,7 +4,7 @@ import IOKit
 import IOKit.ps
 import LidlightKit
 
-/// Observes display, lock, power, lid, battery, idle, thermal and keyboard-backlight state.
+/// Observes display, lock, power, lid, battery, idle and keyboard-backlight state.
 ///
 /// All work happens on the main thread; call `start`/`stop` from the main thread. `onChange` fires
 /// (on main) only when the resulting `SystemStatus` differs from the previous one. Event-driven fields
@@ -68,15 +68,14 @@ public final class SystemMonitor: SystemMonitoring {
     /// Re-reads the event-driven fields, and also the polled samples (idle, keyboard) when `includePolled`.
     private func refresh(includePolled: Bool) {
         var next = status
-        next.displayAsleep = SystemReaders.builtInDisplayAsleep()
+        next.displayAsleep = MacHardware.builtInDisplayAsleep()
         next.screenLocked = lockedByNotification || sessionInactive
         next.lowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
-        next.lidClosed = SystemReaders.lidClosed()
+        next.lidClosed = MacHardware.lidClosed()
         let battery = SystemReaders.battery()
         next.onBattery = battery.onBattery
         next.batteryPercent = battery.percent
         next.isCharging = battery.isCharging
-        next.thermalState = ProcessInfo.processInfo.thermalState.rawValue
         if includePolled {
             next.userIdleSeconds = SystemReaders.userIdleSeconds().rounded(.down)
             next.keyboardBacklightLit = keyboardProbe?.isBuiltInKeyboardLit() ?? false
@@ -130,7 +129,6 @@ public final class SystemMonitor: SystemMonitoring {
             $0.refreshEventDriven()
         }
         observe(local, .NSProcessInfoPowerStateDidChange) { $0.refreshEventDriven() }
-        observe(local, ProcessInfo.thermalStateDidChangeNotification) { $0.refreshEventDriven() }
     }
 
     private func installBatterySource() {

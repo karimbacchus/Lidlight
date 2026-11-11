@@ -106,7 +106,7 @@ public enum SafetyRecovery {
             return false
         }
         Log.driver.notice("recovering from an unclean exit (tables: \(marker.tablesModified), factor: \(marker.factorModified))")
-        driver.setAnimationAllowed(AnimationEnvironment.isPossible())
+        driver.setAnimationAllowed(MacHardware.animationPossible())
         do {
             try driver.restoreSystemDefaults(powerOn: false)
             return true

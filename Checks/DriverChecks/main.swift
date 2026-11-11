@@ -292,14 +292,14 @@ t.test("guardian launch: child sees EOF when the parent closes its end") {
 
 // MARK: Ramp fitting
 
-t.test("ramp fit recovers k from synthetic data") {
-    let model = FactorRampModel(k: 6)
+t.test("ramp fit recovers a from synthetic data") {
+    let model = FactorRampModel(a: 6)
     let samples = stride(from: 0.0, through: 1.0, by: 0.01).map { u in
         (t: u, factor: model.factor(from: 1, toward: 0, duration: 1, elapsed: u))
     }
     let recording = RampRecording(duration: 1, target: .dark, startFactor: 1, samples: samples)
-    t.expectClose(RampFit.fitK([recording]) ?? 0, 6, tolerance: 0.1)
-    t.expectClose(recording.settleTime() ?? 9, 0.76, tolerance: 0.1)
+    t.expectClose(RampFit.fitA([recording]) ?? 0, 6, tolerance: 0.1)
+    t.expectClose(recording.settleTime() ?? 9, 0.9, tolerance: 0.05)
 }
 
 // MARK: CLI parsing
@@ -336,7 +336,7 @@ if runHardware {
         t.expect(driver.readState() != nil)
         t.expectEqual(driver.readPower(), .on)
         defer { try? driver.restoreSystemDefaults(powerOn: true) }
-        guard AnimationEnvironment.isPossible() else {
+        guard MacHardware.animationPossible() else {
             print("    (display asleep or lid closed: animation part skipped)")
             return
         }

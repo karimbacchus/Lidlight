@@ -15,7 +15,7 @@ final class BridgeTransport: LogoPropertyTransport, @unchecked Sendable {
     private let bridge: LLCoreBrightness
 
     init?() {
-        guard let bridge = LLCoreBrightness() else { return nil }
+        guard let bridge = LLCoreBrightness.connect() else { return nil }
         self.bridge = bridge
     }
 

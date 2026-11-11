@@ -30,7 +30,8 @@ public protocol BeatSource: AnyObject {
     var isRunning: Bool { get }
     var permission: AudioCapturePermission { get }
     /// Start capturing. The first start may trigger macOS's "System Audio Recording" prompt.
-    /// Callbacks run on the main thread. `onLevel` is called ~30 times a second with bass level 0...1.
-    func start(onBeat: @escaping (BeatEvent) -> Void, onLevel: @escaping (Double) -> Void) throws
+    /// Callbacks run on the main thread. `onLevel`, if given, is called ~30 times a second with the
+    /// bass level 0...1.
+    func start(onBeat: @escaping (BeatEvent) -> Void, onLevel: ((Double) -> Void)?) throws
     func stop()
 }

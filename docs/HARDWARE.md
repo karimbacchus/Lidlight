@@ -123,11 +123,12 @@ Fits (RMS error of remaining, 1400 samples, d >= 1 s):
 
 | form | parameter | RMS |
 |---|---|---|
-| `FactorRampModel` (normalized exponential) | **k = 2.3** (now `FactorRampModel.measured`) | 0.058 |
-| normalized critically damped response, `g(x) = (1+x)e^-x`, `remaining(u) = (g(a u) - g(a)) / (1 - g(a))` | a = 5.9 | **0.011** |
+| normalized exponential, `remaining(u) = (e^(-k u) - e^(-k)) / (1 - e^(-k))` | k = 2.3 | 0.058 |
+| normalized critically damped response, `g(x) = (1+x)e^-x`, `remaining(u) = (g(a u) - g(a)) / (1 - g(a))` | **a = 5.9** (`FactorRampModel.measured`) | **0.011** |
 
-The critically damped form is the better model (slow start, hard stop at `d`); `k = 2.3` is the best the
-current exponential API can do and is only a rough approximation (error up to ~0.1 near u = 0.1).
+The critically damped form is the better model (slow start, hard stop at `d`) and is the one
+`FactorRampModel` implements; the exponential is off by up to ~0.1 near u = 0.1. `lidlightctl
+measure-ramp` re-fits `a`.
 
 Other findings (macOS 27.2, Mac17,12):
 

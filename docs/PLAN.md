@@ -121,10 +121,10 @@ Rules for parallel work:
 - `FactorRampModel` (public, value type): factor(t) for a ramp from f0 toward target with duration d,
   fitted to measurements; plus inverse helpers (time to reach a factor). Shared with the engine by
   copying the fitted constants into docs/HARDWARE.md (the engine owns its own copy of the model).
-- `CoreBrightnessKeyboardProbe`: lit = brightness > 0.01 && !suppressed && !dimmed for the built-in keyboard.
+- `CoreBrightnessKeyboardProbe`: lit = !dimmed && !saturated for the built-in keyboard.
 - `DriverCLI` (`lidlightctl`): `help`, `status [--json]`, `on`, `off`, `level <nits>`, `tables`,
   `restore`, `fade <dark|lit> [seconds]`, `measure-ramp [seconds…]` (samples Factor at ~100 Hz in-process,
-  prints CSV + fitted τ), `guard --parent-pid <pid>` (see guardian).
+  prints CSV + fitted `a`), `guard --parent-pid <pid>` (see guardian).
 - Guardian: `GuardianLauncher.launch(helperURL:)` starts `lidlightctl guard --parent-pid <pid>` with a
   pipe on stdin. The guard blocks reading stdin; on EOF (app exited/crashed) it restores defaults if the
   dirty marker exists (respecting a `keepOff` flag the app writes into the marker), then exits. It ignores
@@ -157,7 +157,6 @@ Rules for parallel work:
 - Battery: IOPowerSources (`IOPSCopyPowerSourcesInfo`, run-loop notification).
 - Idle: `CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .null)` (or
   `HIDIdleTime`), sampled every 2 s.
-- Thermal: `ProcessInfo.thermalState` + notification.
 - Keyboard lit: injected `KeyboardBacklightProbing`, sampled every 2 s.
 - Emit only on change, on the main thread.
 

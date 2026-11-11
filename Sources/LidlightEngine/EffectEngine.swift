@@ -51,10 +51,6 @@ public final class EffectEngine: LogoControlling {
         queue.async { [core] in core.handleBeat(beat) }
     }
 
-    public func handleAudioLevel(_ level: Double) {
-        queue.async { [core] in core.handleAudioLevel(level) }
-    }
-
     public func preview(_ activity: AgentActivity) {
         queue.async { [core] in core.preview(activity) }
     }
